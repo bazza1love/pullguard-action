@@ -3,10 +3,10 @@
 # Pro/Enterprise (27 analyzers) unlocked via PULLGUARD_LICENSE_KEY secret.
 #
 # Usage:
-#   - uses: bazza1love/pullguard-action@v1
+#   - uses: pullguard-dev/pullguard-action@v1
 #
 # With Pro/Enterprise:
-#   - uses: bazza1love/pullguard-action@v1
+#   - uses: pullguard-dev/pullguard-action@v1
 #     with:
 #       license-key: ${{ secrets.PULLGUARD_LICENSE_KEY }}
 
@@ -67,7 +67,7 @@ runs:
         # Copy the GitHub event JSON into workspace so the container can read it
         cp "$GITHUB_EVENT_PATH" "${{ github.workspace }}/.github-event.json" 2>/dev/null || true
 
-        docker pull ghcr.io/bazza1love/pullguard:latest 2>/dev/null
+        docker pull ghcr.io/pullguard-dev/pullguard:latest 2>/dev/null
         docker run --rm \
           -v "${{ github.workspace }}:/workspace" \
           -e GITHUB_TOKEN="${{ github.token }}" \
@@ -83,7 +83,7 @@ runs:
           -e PULLGUARD_HOURLY_RATE="${PULLGUARD_HOURLY_RATE}" \
           -e PULLGUARD_CONFIG="${PULLGUARD_CONFIG}" \
           -e PULLGUARD_SCAN_PATH="${PULLGUARD_SCAN_PATH}" \
-          ghcr.io/bazza1love/pullguard:latest || true
+          ghcr.io/pullguard-dev/pullguard:latest || true
 
         # Copy container outputs to actual GitHub paths
         if [ -f "${{ github.workspace }}/.pullguard-step-summary.md" ]; then

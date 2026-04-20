@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: bazza1love/pullguard-action@v1
+      - uses: pullguard-dev/pullguard-action@v1
 ```
 
 That's it. 12 analyzers run on every PR — no license key, no configuration, no account needed.
@@ -28,7 +28,7 @@ That's it. 12 analyzers run on every PR — no license key, no configuration, no
 Add your license key as a repo secret to unlock all 27 analyzers:
 
 ```yaml
-      - uses: bazza1love/pullguard-action@v1
+      - uses: pullguard-dev/pullguard-action@v1
         with:
           license-key: ${{ secrets.PULLGUARD_LICENSE_KEY }}
           fail-on-severity: critical
