@@ -1,0 +1,29 @@
+# CODEOWNERS — pullguard-dev/pullguard-action
+#
+# WHY: This repo is a manual mirror of `pullguard-dev/PullGuard` (private).
+# `action.yml` lives in BOTH repos and must stay byte-identical — the
+# monorepo's `packages/pullguard/test/integration/action-mirror-drift.test.ts`
+# fails CI when they diverge. The procedure for keeping them in sync is
+# documented in the monorepo at `packages/pullguard/docs/MIRROR_PROCEDURE.md`
+# and requires opening a PR on this repo (NOT direct-pushing to main),
+# precisely because customers run this exact action.yml on every PR scan.
+#
+# Owners listed here are auto-requested as reviewers when matching files
+# change. Combined with main-branch protection (required PR review,
+# enforced via repository settings) this makes the procedure structurally
+# enforced: nobody can shortcut a `git push origin main` for these paths.
+#
+# A 2026-04-27 incident (sync of the hourly-rate USD label change) was
+# direct-pushed to main bypassing the PR workflow. The change itself was
+# correct + cosmetic, but the procedural shortcut was the same failure
+# class as the 2026-04-23 PR-comment regression that prompted the
+# action-mirror-drift test in the first place. CODEOWNERS + branch
+# protection eliminate the temptation.
+
+# Action contract surface — every change reviewed.
+/action.yml @bazza1love
+/.github/ @bazza1love
+
+# Marketplace metadata.
+/README.md @bazza1love
+/LICENSE @bazza1love
