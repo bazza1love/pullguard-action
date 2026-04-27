@@ -28,7 +28,7 @@ inputs:
     required: false
     default: ''
   hourly-rate:
-    description: 'Developer hourly rate for cost estimation. Default: 150.'
+    description: 'Developer hourly rate (USD) for cost estimation. Default: 150 USD.'
     required: false
     default: '150'
   config:
