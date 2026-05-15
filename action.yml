@@ -43,6 +43,10 @@ inputs:
     description: 'When true, POST the scan report to the PullGuard GitHub App backend (/api/app/report) so findings appear as native Check Run annotations on the PR Files-changed view. Requires the PullGuard App to be installed on the repo. Default: false (backwards-compatible; Step Summary + PR comment still render).'
     required: false
     default: 'false'
+  image-pin:
+    description: 'Image reference to pin against. Default `latest` (auto-update; PullGuard publishes a new `:latest` per merge to main). Set to a SHA tag (e.g. `4fdfc1a`) or a release tag (e.g. `v1.0.0`) to pin to that specific image — SHA tags are preserved for 7 days; release tags `v[0-9]+.[0-9]+.[0-9]+` are preserved forever (ADR-0054 Phase A). Set to a `sha256:<hex>` value to digest-pin (cryptographically immutable). Examples: `image-pin: latest`, `image-pin: v1.0.0`, `image-pin: sha256:4ab06b5dde376477c9747406da72f6bb80ff471490a5af200d7ff3943f26355e`.'
+    required: false
+    default: 'latest'
 
 outputs:
   score:
@@ -68,12 +72,40 @@ runs:
         PULLGUARD_CONFIG: ${{ inputs.config }}
         PULLGUARD_SCAN_PATH: ${{ inputs.path }}
         PULLGUARD_REPORT_TO_APP: ${{ inputs.report-to-app }}
+        PULLGUARD_IMAGE_PIN: ${{ inputs.image-pin }}
       # WHY: Pull and run the Docker image directly. The entrypoint handles
       # everything: scan, step summary, PR comment, severity threshold, outputs.
       # Using docker run instead of container: directive gives us control over
       # env var mapping and works as a composite action step.
       run: |
-        docker pull ghcr.io/pullguard-dev/pullguard:latest
+        # WHY (ADR-0054 Phase A + ADR-0055): resolve the image reference
+        # from the `image-pin` input. Default `latest` preserves backward-
+        # compatible behaviour. SHA-tag / release-tag pinning protects
+        # against supply-chain risk (red-team Finding 6.2 partial closure).
+        # Digest-pin (`sha256:...`) gives the strongest cryptographic
+        # guarantee.
+        #
+        # Input format (validated by the case statement below):
+        #   - empty / "latest"         → :latest
+        #   - "sha256:<64-hex>"        → @sha256:<64-hex>  (digest pin)
+        #   - anything else (alnum + . / - / _) → :<value>  (tag pin)
+        #
+        # Anything containing shell-special chars rejects with exit 1 to
+        # prevent malicious workflow inputs from injecting flags into the
+        # `docker pull` / `docker run` commands.
+        IMAGE_PIN_INPUT="${PULLGUARD_IMAGE_PIN:-latest}"
+        if [ -z "$IMAGE_PIN_INPUT" ] || [ "$IMAGE_PIN_INPUT" = "latest" ]; then
+          IMAGE_REF="ghcr.io/pullguard-dev/pullguard:latest"
+        elif [[ "$IMAGE_PIN_INPUT" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+          IMAGE_REF="ghcr.io/pullguard-dev/pullguard@${IMAGE_PIN_INPUT}"
+        elif [[ "$IMAGE_PIN_INPUT" =~ ^[A-Za-z0-9._-]+$ ]]; then
+          IMAGE_REF="ghcr.io/pullguard-dev/pullguard:${IMAGE_PIN_INPUT}"
+        else
+          echo "::error::Invalid image-pin input: '${IMAGE_PIN_INPUT}'. Must be 'latest', a SHA/release tag like '4fdfc1a' or 'v1.0.0', or a 'sha256:<hex>' digest." >&2
+          exit 1
+        fi
+        echo "PullGuard image: ${IMAGE_REF}"
+        docker pull "${IMAGE_REF}"
 
         # WHY: Copy the GitHub event payload into the workspace so the
         # container can read it. The runner's $GITHUB_EVENT_PATH lives on
@@ -103,7 +135,7 @@ runs:
           -e PULLGUARD_CONFIG="${PULLGUARD_CONFIG}" \
           -e PULLGUARD_SCAN_PATH="${PULLGUARD_SCAN_PATH}" \
           -e PULLGUARD_REPORT_TO_APP="${PULLGUARD_REPORT_TO_APP}" \
-          ghcr.io/pullguard-dev/pullguard:latest
+          "${IMAGE_REF}"
 
         # WHY: Copy outputs from container-written files to actual GitHub paths
         if [ -f "${{ github.workspace }}/.step-summary.md" ]; then
