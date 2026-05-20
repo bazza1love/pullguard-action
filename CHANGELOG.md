@@ -41,6 +41,12 @@ Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard
   engineering leader would actually sign off on fixing rather than the
   inflated all-findings total.
 
+- **`image-pin` action input** — pin the scanner to an immutable release
+  tag (`image-pin: v1.0.0`) or content digest (`image-pin: sha256:…`)
+  instead of the rolling `:latest`. Recommended for enterprise
+  change-control and reproducible builds. Defaults to `latest`, so
+  existing workflows keep their current behaviour with no change required.
+
 ### Changed
 
 - **Tier analyzer counts**: Free **14** (unchanged), Pro **31 → 42**,
