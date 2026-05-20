@@ -6,7 +6,19 @@ changelog; this file is the canonical record going forward.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard.dev).
 
-## [Unreleased] — Spring 2026 release
+## [Unreleased]
+
+_Customer-visible changes already live on `:latest` but not yet bundled into a cut image tag. Pin a specific release below for change-controlled, reproducible scans._
+
+---
+
+## [1.0.0] — 2026-05-20 (Spring 2026 release)
+
+PullGuard's first pinnable release. 43 analyzers across security, code
+quality, compliance, and supply-chain; five compliance frameworks (SOC 2,
+HIPAA, PCI DSS 4.0, NIST 800-53 Rev 5, ISO 27001:2022); endpoint-risk
+prioritisation; and actionable-vs-observational cost reporting. Pin it with
+`image-pin: v1.0.0`.
 
 ### Added
 
@@ -108,8 +120,13 @@ Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard
 PullGuard is continuously deployed: pushing to the `pullguard-dev/pullguard:latest`
 container image happens on every merge to the scanner repository's
 main branch. Customers using `uses: pullguard-dev/pullguard-action@v1`
-pull the latest image automatically on each scan. Specific commit SHAs
-are not pinned; the contract is the action.yml + image versioning.
+pull the latest image automatically on each scan.
+
+For change-controlled or reproducible scans, pin a specific image with the
+`image-pin` input (e.g. `image-pin: v1.0.0`). You then get exactly the
+capabilities listed under that release section above, frozen until you
+choose to move the pin — each numbered release here corresponds to an
+immutable `ghcr.io/pullguard-dev/pullguard:vX.Y.Z` image tag.
 
 For policy questions, security disclosures, or to discuss enterprise
 deployment options: [hello@pullguard.dev](mailto:hello@pullguard.dev).
