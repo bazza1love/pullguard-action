@@ -44,9 +44,9 @@ inputs:
     required: false
     default: 'false'
   image-pin:
-    description: 'Image reference to pin against. Default `latest` (auto-update; PullGuard publishes a new `:latest` per merge to main). Set to a SHA tag (e.g. `4fdfc1a`) or a release tag (e.g. `v1.0.0`) to pin to that specific image — SHA tags are preserved for 7 days; release tags `v[0-9]+.[0-9]+.[0-9]+` are preserved forever (ADR-0054 Phase A). Set to a `sha256:<hex>` value to digest-pin (cryptographically immutable). Examples: `image-pin: latest`, `image-pin: v1.0.0`, `image-pin: sha256:4ab06b5dde376477c9747406da72f6bb80ff471490a5af200d7ff3943f26355e`.'
+    description: 'Which scanner image the action runs. Default `1` — the moving major-line tag that always resolves to the newest stable v1.x.y RELEASE (re-pointed only when a signed release is cut, never per-merge), so scans stay current with security improvements yet reproducible. Set `latest` for the bleeding-edge image rebuilt on every merge to main. Pin an exact release tag (`v1.0.0`) or a `sha256:<hex>` digest to freeze one version for change-controlled / air-gapped environments. SHA tags (e.g. `4fdfc1a`) are retained 7 days; release tags `v[0-9]+.[0-9]+.[0-9]+` are preserved forever and the `1` / `1.0` lines re-point to them (ADR-0054 Phase A / ADR-0066). Examples: `image-pin: 1`, `image-pin: latest`, `image-pin: v1.0.0`, `image-pin: sha256:4ab06b5dde376477c9747406da72f6bb80ff471490a5af200d7ff3943f26355e`.'
     required: false
-    default: 'latest'
+    default: '1'
 
 outputs:
   score:
@@ -78,30 +78,35 @@ runs:
       # Using docker run instead of container: directive gives us control over
       # env var mapping and works as a composite action step.
       run: |
-        # WHY (ADR-0054 Phase A + ADR-0055): resolve the image reference
-        # from the `image-pin` input. Default `latest` preserves backward-
-        # compatible behaviour. SHA-tag / release-tag pinning protects
-        # against supply-chain risk (red-team Finding 6.2 partial closure).
-        # Digest-pin (`sha256:...`) gives the strongest cryptographic
-        # guarantee.
+        # WHY (ADR-0054 Phase A + ADR-0055 + ADR-0066): resolve the image
+        # reference from the `image-pin` input. Default `1` = the moving
+        # major-line tag → newest signed v1.x.y RELEASE (re-pointed only on a
+        # release cut, NOT per-merge `:latest`), so set-and-forget customers
+        # stay current with security improvements yet get reproducible scans.
+        # SHA-tag / release-tag pinning protects against supply-chain risk
+        # (red-team Finding 6.2 partial closure). Digest-pin (`sha256:...`)
+        # gives the strongest cryptographic guarantee.
         #
-        # Input format (validated by the case statement below):
-        #   - empty / "latest"         → :latest
+        # Input format (validated by the case statement below). `:-1` matches
+        # action.yml `default: '1'`, so an omitted OR empty input both resolve
+        # to the stable channel — no split-brain between the two defaults:
+        #   - empty / "1"              → :1       (stable major line, default)
+        #   - "latest"                 → :latest  (per-merge bleeding edge)
         #   - "sha256:<64-hex>"        → @sha256:<64-hex>  (digest pin)
-        #   - anything else (alnum + . / - / _) → :<value>  (tag pin)
+        #   - anything else (alnum + . / - / _) → :<value>  (tag pin, e.g. v1.0.0)
         #
         # Anything containing shell-special chars rejects with exit 1 to
         # prevent malicious workflow inputs from injecting flags into the
         # `docker pull` / `docker run` commands.
-        IMAGE_PIN_INPUT="${PULLGUARD_IMAGE_PIN:-latest}"
-        if [ -z "$IMAGE_PIN_INPUT" ] || [ "$IMAGE_PIN_INPUT" = "latest" ]; then
+        IMAGE_PIN_INPUT="${PULLGUARD_IMAGE_PIN:-1}"
+        if [ "$IMAGE_PIN_INPUT" = "latest" ]; then
           IMAGE_REF="ghcr.io/pullguard-dev/pullguard:latest"
         elif [[ "$IMAGE_PIN_INPUT" =~ ^sha256:[a-f0-9]{64}$ ]]; then
           IMAGE_REF="ghcr.io/pullguard-dev/pullguard@${IMAGE_PIN_INPUT}"
         elif [[ "$IMAGE_PIN_INPUT" =~ ^[A-Za-z0-9._-]+$ ]]; then
           IMAGE_REF="ghcr.io/pullguard-dev/pullguard:${IMAGE_PIN_INPUT}"
         else
-          echo "::error::Invalid image-pin input: '${IMAGE_PIN_INPUT}'. Must be 'latest', a SHA/release tag like '4fdfc1a' or 'v1.0.0', or a 'sha256:<hex>' digest." >&2
+          echo "::error::Invalid image-pin input: '${IMAGE_PIN_INPUT}'. Must be '1' (stable major line), 'latest', a release/SHA tag like 'v1.0.0' or '4fdfc1a', or a 'sha256:<hex>' digest." >&2
           exit 1
         fi
         echo "PullGuard image: ${IMAGE_REF}"
