@@ -8,7 +8,16 @@ Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard
 
 ## [Unreleased]
 
-_Customer-visible changes already live on `:latest` but not yet bundled into a cut image tag. Pin a specific release below for change-controlled, reproducible scans._
+### Changed
+
+- **`@v1` now defaults to the stable release line, not the bleeding edge.**
+  If you use `uses: pullguard-dev/pullguard-action@v1` without setting
+  `image-pin`, PullGuard now runs the newest **stable release** instead of
+  the rolling image that rebuilt on every change. Your scans are reproducible
+  between runs and still pick up each new release automatically — without the
+  occasional churn of an in-progress build. To keep the previous
+  always-newest behaviour, set `image-pin: latest`. To freeze an exact
+  version, set `image-pin: v1.0.0` (or a `sha256:…` digest).
 
 ---
 
@@ -117,15 +126,18 @@ prioritisation; and actionable-vs-observational cost reporting. Pin it with
 - **`Fixed`** — bug fixes that resolve incorrect or missing output
 - **`Compliance`** — changes to compliance-evidence reporting
 
-PullGuard is continuously deployed: pushing to the `pullguard-dev/pullguard:latest`
-container image happens on every merge to the scanner repository's
-main branch. Customers using `uses: pullguard-dev/pullguard-action@v1`
-pull the latest image automatically on each scan.
+PullGuard is continuously deployed: the `pullguard-dev/pullguard:latest`
+container image is rebuilt on every merge to the scanner repository's main
+branch, and a numbered **release** (`:1.0.0`, `:1.1.0`, …) is cut from it
+periodically. Customers using `uses: pullguard-dev/pullguard-action@v1`
+default to the **stable release line** — they update to each new release
+automatically but never to an in-progress build. Set `image-pin: latest` to
+track every merge instead.
 
-For change-controlled or reproducible scans, pin a specific image with the
-`image-pin` input (e.g. `image-pin: v1.0.0`). You then get exactly the
-capabilities listed under that release section above, frozen until you
-choose to move the pin — each numbered release here corresponds to an
+For change-controlled or reproducible scans, freeze an exact version with the
+`image-pin` input (e.g. `image-pin: v1.0.0`, or a `sha256:…` digest). You then
+get exactly the capabilities listed under that release section above, frozen
+until you choose to move the pin — each numbered release here corresponds to an
 immutable `ghcr.io/pullguard-dev/pullguard:vX.Y.Z` image tag.
 
 For policy questions, security disclosures, or to discuss enterprise
