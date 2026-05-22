@@ -12,6 +12,19 @@ _Customer-visible changes already live on `:latest` but not yet bundled into a c
 
 ---
 
+## [1.1.1] — 2026-05-22
+
+Patch release. Pin it with `image-pin: v1.1.1`.
+
+### Fixed
+
+- **SOC 2 compliance evidence now renders correctly.** A rendering issue could
+  cause the SOC 2 section to show "0/0" controls (and omit the SOC 2 evidence
+  table) on a scan; it now displays the full SOC 2 control status as intended.
+  The other four frameworks (HIPAA / PCI DSS / NIST / ISO) were unaffected.
+
+---
+
 ## [1.1.0] — 2026-05-22
 
 Compliance evidence now renders for all five frameworks on every PR, the `@v1`
