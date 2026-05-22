@@ -12,6 +12,20 @@ _Customer-visible changes already live on `:latest` but not yet bundled into a c
 
 ---
 
+## [1.1.2] — 2026-05-22
+
+Patch release. Pin it with `image-pin: v1.1.2`.
+
+### Fixed
+
+- **False positive in unused-export detection on Python projects.** A symbol
+  exported by one module and imported elsewhere via an absolute import
+  (`from config import name`) could be flagged "not imported by any other file".
+  Absolute imports are now resolved correctly; genuinely-unused exports are still
+  reported.
+
+---
+
 ## [1.1.1] — 2026-05-22
 
 Patch release. Pin it with `image-pin: v1.1.1`.
