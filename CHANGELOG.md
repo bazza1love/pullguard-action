@@ -8,6 +8,26 @@ Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard
 
 ## [Unreleased]
 
+_Customer-visible changes already live on `:latest` but not yet bundled into a cut image tag. Pin a specific release below for change-controlled, reproducible scans._
+
+---
+
+## [1.1.0] — 2026-05-22
+
+Compliance evidence now renders for all five frameworks on every PR, the `@v1`
+default moves to the stable release channel, and an authorization fix on the
+optional Check Run integration. Pin it with `image-pin: v1.1.0`.
+
+### Added
+
+- **Compliance evidence for all five frameworks on every PR.** Alongside SOC 2,
+  each PR now shows a compact PASS / CONCERN / FAIL summary for HIPAA Technical
+  Safeguards, PCI DSS 4.0, NIST 800-53 Rev 5, and ISO 27001:2022. Turn on the
+  full per-control evidence tables for any of the four with
+  `compliance: { hipaa: true, pci-dss: true, nist: true, iso-27001: true }` in
+  your `.driftrc.yml`. PullGuard provides evidence *toward* these frameworks — it
+  does not grant compliance.
+
 ### Changed
 
 - **`@v1` now defaults to the stable release line, not the bleeding edge.**
@@ -17,7 +37,16 @@ Live release notes for the hosted scanner: [pullguard.dev](https://www.pullguard
   between runs and still pick up each new release automatically — without the
   occasional churn of an in-progress build. To keep the previous
   always-newest behaviour, set `image-pin: latest`. To freeze an exact
-  version, set `image-pin: v1.0.0` (or a `sha256:…` digest).
+  version, set `image-pin: v1.1.0` (or a `sha256:…` digest).
+
+### Fixed
+
+- Hardened authorization on the optional GitHub App Check Run integration —
+  unlimited-repo (Enterprise) tokens are now scoped to their own organization.
+- Documentation accuracy: the privacy policy now describes the single
+  license-validation request made during a scan (your license key + repository
+  name only — never your source code or scan results), and the cost-of-change
+  formula and per-tier analyzer counts now match the product.
 
 ---
 
