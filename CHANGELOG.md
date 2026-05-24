@@ -12,6 +12,50 @@ _Customer-visible changes already live on `:latest` but not yet bundled into a c
 
 ---
 
+## [1.2.0] — 2026-05-23
+
+AI-era security: secure and govern the code your AI writes, exploit-aware prioritization of known vulnerabilities, and a set of authorization-aware precision fixes. Pin it with `image-pin: v1.2.0`.
+
+### Added
+
+- **Security focus on AI-generated code.** When a security flaw appears in code
+  that shows AI-generation signals, PullGuard now raises a single prioritized
+  "review this AI-written code" finding instead of separate AI and security
+  findings. Standalone AI-generation findings are informational only — signal,
+  not noise.
+- **AI-governance evidence.** Each scan reports the share of analyzed code that
+  shows AI-generation signals, as advisory evidence toward EU AI Act and NIST AI
+  RMF programs. Evidence *toward* governance — not a grant of compliance.
+- **AI application-security coverage (OWASP LLM & Agentic Top-10).** Taint
+  analysis now follows untrusted data into LLM completion, RAG / vector-retrieval,
+  agent, and model-loading sinks — across hosted, private, and self-hosted model
+  endpoints — and treats model output as untrusted input.
+- **Exploit-aware vulnerability prioritization.** Known-CVE findings now carry an
+  EPSS exploit-probability score and a CISA KEV "actively exploited in the wild"
+  flag, so the vulnerabilities most likely to be attacked rise to the top. The
+  actively-exploited feed refreshes continuously on PullGuard's side — your scans
+  pick up newly-flagged CVEs without changing your pinned image.
+
+### Changed
+
+- **Authorization guards are recognized, not just authentication.** Routes
+  protected by an authorization layer — Spring's centralized `SecurityFilterChain`,
+  or Express / NestJS guards such as `isAuthorized`, `isAdmin`, `hasRole`, and
+  `denyAll` — are no longer reported as missing authentication.
+- **Vendored, generated, and minified third-party code is excluded from
+  source-code security findings** (it is still scanned for committed secrets).
+
+### Fixed
+
+- **More committed-credential files are detected** — private keys (`.pem`,
+  `id_rsa`), `.netrc`, and similar — even when they are not a scanned source type.
+- **Cross-file taint findings point at a real, clickable line** (previously some
+  could reference a line past the end of the file).
+- **Fewer false "orphaned file" findings** for browser-served assets and for
+  modules wired together with CommonJS `require()`.
+
+---
+
 ## [1.1.2] — 2026-05-22
 
 Patch release. Pin it with `image-pin: v1.1.2`.
