@@ -12,6 +12,55 @@ _Customer-visible changes already live on `:latest` but not yet bundled into a c
 
 ---
 
+## [1.2.1] — 2026-05-28
+
+Signal-quality patch. A multi-repo rollout sweep across real customer-class codebases (NodeGoat, DVWA, WebGoat, Juice Shop, plus a representative React/Vite admin app and a TypeScript ops-desk UI) surfaced a cluster of false positives and one stateful-regex false negative. All closed structurally so the fixes hold across your codebase. Pin it with `image-pin: v1.2.1`, or stay on `image-pin: 1` (re-pointed to v1.2.1) for the precision wins on your next run.
+
+### Fixed
+
+- **Frontend HTTP-client files are no longer mistaken for unauthenticated Express
+  routes.** A genuine server file is now required before missing-auth checks
+  run — at least one of: the `express` module, a `Router()` factory, an `app.` /
+  `router.` route or middleware receiver, an Express `res.` / `req.` object, or
+  a NestJS class decorator. A real route that just omits the `express` import
+  still flags — no false negatives. Closes the React/Vite-with-api-client false
+  positive cluster.
+- **Embedded base64 image / font / binary blobs are no longer flagged as AWS
+  keys.** A 20-character key-shaped substring that sits inside a long
+  contiguous base64 run, or immediately after a `data:<mime>;base64,` prefix,
+  is treated as encoded data, not a credential. Real keys outside an encoded
+  blob still report.
+- **i18n / UI label values and obvious placeholders are no longer flagged as
+  hardcoded secrets** by the loose `secret/password` pattern. Rejected shapes:
+  values containing whitespace ("Password (if protected post)"), placeholder
+  words ("changeme", "YOUR_API_KEY", "xxxxxxxxxx", "password", "your-pw"),
+  masked values, `${SECRET}` templates, `process.env.X` references.
+  Provider-specific keys (AWS, GitHub, Slack, Stripe, PEM private keys) stay
+  strict and are NOT gated by this rubric.
+- **HTML inline `<script>` blocks are no longer flagged as `command_injection`.**
+  The previous rule was over-broad for static HTML; the dynamic-execution
+  analyzers still cover real injection paths.
+- **Node `child_process.exec` is no longer included in the SQL-injection
+  regex.** It's a command-execution sink, not a SQL sink — the
+  command-injection analyzer covers it correctly.
+- **Cross-file false negative closed in the OWASP regex catalogs.** A stateful
+  regex matcher could leave its internal cursor past a real hit on the
+  previous file, silently missing the same vulnerability on the next file.
+  Detection is now deterministic per file. Order-independent.
+- **Security findings cluster sort order** is now consistent critical → major →
+  moderate → minor → info across the PR comment, step summary, and JSON
+  output. No emoji-vs-content drift.
+
+### Image tags
+
+- `:v1.2.1`, `:1.2.1`, `:1.2`, `:1`, and `:latest` re-pointed to the new digest
+  (`sha256:485925d26447191520fd68b3e3f1df9c5fabcabd760fc235c38214ffd76a589f`).
+- `:v1.2.0` and `:1.2.0` are retained at their existing digest
+  (`sha256:06e0e41fa6a575839c2542b038906d1926588763ed7a0d8ae924268eff53c8b0`)
+  for anyone pinned.
+
+---
+
 ## [1.2.0] — 2026-05-23
 
 AI-era security: secure and govern the code your AI writes, exploit-aware prioritization of known vulnerabilities, and a set of authorization-aware precision fixes. Pin it with `image-pin: v1.2.0`.
